@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\addCoursePost;
+use App\Http\Requests\EditCourseRequest;
 use App\Models\Course;
 use Illuminate\Http\Request;
 
@@ -14,8 +16,21 @@ class AdminCourseController extends Controller
 
     public function allCoursePage()
     {
-        $coursenew = Course::all();
+        $coursenew = Course::paginate(5);
         return view('admin.course.allCourse', compact("coursenew"));
+    }
+
+
+    public function addCoursePost(addCoursePost $request)
+    {
+        $data = $request->validated();
+        $courseImage = $request->file("image");
+        $newCourseImage = rand() . "_" . $courseImage->getClientOriginalName();
+        $courseImage->move(public_path('assets/image'), $newCourseImage);
+
+        $data['image'] = $newCourseImage;
+        $request->user()->course()->create($data);
+        return redirect()->route('allCourse.page')->with('success', 'Post saved successfully');
     }
 
     public function EditPage($id)
@@ -24,84 +39,36 @@ class AdminCourseController extends Controller
         return view('admin.course.editCourse', compact('course'));
     }
 
-    public function EditPost(Request $request)
+    public function EditPost(EditCourseRequest $request)
     {
-        $request->validate([
-            'title' => 'required',
-            'price' => 'required',
-            'description' => 'required',
-            'image' => 'nullable|image'
-        ]);
-
         $course = Course::find($request->courseId);
-
-        if (!$course) {
-            return redirect()->back()->with('error', 'Course not found!');
-        }
+        $data = $request->validated();
 
         if ($request->hasFile('image')) {
             if ($course->image && file_exists(public_path('assets/image/' . $course->image))) {
                 unlink(public_path('assets/image/' . $course->image));
             }
+            $image = $request->file('image');
+            $imageName = rand() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('assets/image'), $imageName);
 
-            $courseImage = $request->file("image");
-            $newCourseImage = rand() . "_" . $courseImage->getClientOriginalName();
-            $courseImage->move(public_path('assets/image'), $newCourseImage);
-
-            $course->image = $newCourseImage;
+            $data['image'] = $imageName;
         }
-
-        $course->title = $request->title;
-        $course->price = $request->price;
-        $course->description = $request->description;
-        $course->save();
+        $course->update($data);
 
         return redirect()->route('allCourse.page')->with('success', 'Course updated successfully!');
     }
 
-    public function addCoursePost(Request $request)
+    public function deleteCoursePost($id)
     {
-        $request->validate([
-            'title' => 'required',
-            'price' => 'required',
-            'description' => 'required',
-            'image' => 'required|image'
-        ]);
+        $course = Course::findOrFail($id);
 
-        $courseImage = $request->file("image");
-        $newCourseImage = rand() . "_" . $courseImage->getClientOriginalName();
-        $courseImage->move(public_path('assets/image'), $newCourseImage);
-
-        $course = new Course();
-        $course->title = $request->title;
-        $course->price = $request->price;
-        $course->description = $request->description;
-        $course->image = $newCourseImage;
-
-        if ($request->user()->course()->save($course)) {
-            $msg = "Post saved successfully";
-        }
-
-        return redirect()->back()->with(['success' => $msg]);
-    }
-
-    public function DeleteCoursePost($id)
-    {
-        $course = Course::find($id);
-
-        if (!$course) {
-            return redirect()->back()->with('error', 'Course not found');
-        }
-
-        if ($course->image != "") {
-            $courseImage = public_path('assets/image/' . $course->image);
-            if (file_exists($courseImage)) {
-                unlink($courseImage);
-            }
+        if ($course->image && file_exists(public_path('assets/image/' . $course->image))) {
+            unlink(public_path('assets/image/' . $course->image));
         }
 
         $course->delete();
 
-        return redirect()->back()->with(['delete' => 'Course deleted successfully']);
+        return back()->with('delete', 'Course deleted successfully');
     }
 }

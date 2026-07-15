@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\EditNewsRequest;
+use App\Http\Requests\NewsRequest;
 use App\Models\Neweducation;
 use Illuminate\Http\Request;
 
@@ -14,7 +16,7 @@ class AdminNewsController extends Controller
 
     public function allNewsPage()
     {
-        $news = Neweducation::all();
+        $news = Neweducation::paginate(10);
         return view('admin.news.allNews', compact("news"));
     }
 
@@ -24,62 +26,37 @@ class AdminNewsController extends Controller
         return view('admin.news.editNews', compact('news'));
     }
 
-    public function EditNewsPost(Request $request)
+    public function addNewsPost(NewsRequest $request)
     {
-        $request->validate([
-            'title' => 'required',
-            'description' => 'required',
-            'image' => 'nullable|image'
-        ]);
+        $data = $request->validated();
 
+        $courseImage = $request->file("image");
+        $newCourseImage = rand() . "_" . $courseImage->getClientOriginalName();
+        $courseImage->move(public_path('assets/image'), $newCourseImage);
+
+        $data['image'] = $newCourseImage;
+        $request->user()->news()->create($data);
+        return redirect()->route('allNews.page')->with('success', 'News created successfully!');
+    }
+
+    public function EditNewsPost(EditNewsRequest $request)
+    {
         $news = Neweducation::find($request->newsId);
+        $data = $request->validated();
 
-        if (!$news) {
-            return redirect()->back()->with('error', 'News not found!');
-        }
-
-        // Agar yangi rasm bo‘lsa
         if ($request->hasFile('image')) {
             if ($news->image && file_exists(public_path('assets/image/' . $news->image))) {
                 unlink(public_path('assets/image/' . $news->image));
             }
+            $image = $request->file('image');
+            $imageName = rand() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('assets/image'), $imageName);
 
-            $newImage = $request->file("image");
-            $newEducationImage = rand() . "_" . $newImage->getClientOriginalName();
-            $newImage->move(public_path('assets/image'), $newEducationImage);
-            $news->image = $newEducationImage;
+            $data['image'] = $imageName;
         }
+        $news->update($data);
 
-        // Ma’lumotlarni yangilaymiz
-        $news->title = $request->title;
-        $news->description = $request->description;
-        $news->save();
-
-        return redirect()->route('allNews.page')->with('success', 'News updated successfully!');
-    }
-
-    public function addNewsPost(Request $request)
-    {
-        $request->validate([
-            'title' => 'required',
-            'description' => 'required',
-            'image' => 'required|image'
-        ]);
-
-        $newImage = $request->file("image");
-        $newEducationImage = rand() . "_" . $newImage->getClientOriginalName();
-        $newImage->move(public_path('assets/image'), $newEducationImage);
-
-        $news = new Neweducation();
-        $news->title = $request->title;
-        $news->description = $request->description;
-        $news->image = $newEducationImage;
-
-        if ($request->user()->news()->save($news)) {
-            $msg = "Post saved successfully!";
-        }
-
-        return redirect()->back()->with(['success' => $msg]);
+        return redirect()->route('allNews.page')->with('success', 'Course updated successfully!');
     }
 
 
@@ -87,19 +64,10 @@ class AdminNewsController extends Controller
     {
           $news = Neweducation::find($id);
 
-        if (!$news) {
-            return redirect()->back()->with('error', 'Course not found');
+        if ($news->image && file_exists(public_path('assets/image/' . $news->image))) {
+            unlink(public_path('assets/image/' . $news->image));
         }
-
-        if ($news->image != "") {
-            $newsImage = public_path('assets/image/' . $news->image);
-            if (file_exists($newsImage)) {
-                unlink($newsImage);
-            }
-        }
-
         $news->delete();
-
         return redirect()->back()->with(['delete' => 'News deleted successfully']);
     }
 }

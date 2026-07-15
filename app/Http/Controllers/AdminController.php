@@ -17,6 +17,8 @@ class AdminController extends Controller
     $coursesnew = course::all();
     return view('admin.dashboard');
     }
+
+
     public function loginPage()
     {
         return view('admin.login');
@@ -66,6 +68,6 @@ class AdminController extends Controller
     }
 
 
-   
+
 
 }

@@ -31,12 +31,16 @@
            </td>
 
            <td>
-            <a href="{{route('DeleteCourse.post' , ['id'=>$coursee->id])}}" class="btn btn-danger">Delete</a>
+            <a href="{{route('DeleteCourse.post' , ['id'=>$coursee->id])}}" onclick="return confirm('Malumot ochirilsinmi?')" class="btn btn-danger">Delete</a>
            </td>
         </tr>
         @endforeach
 
     </tbody>
 </table>
+
+<div class="d-flex justify-content-center">
+    {{ $coursenew->links('pagination::bootstrap-4') }}
+</div>
 
 @endsection

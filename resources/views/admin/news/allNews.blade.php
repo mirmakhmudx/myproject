@@ -27,12 +27,16 @@
                 <a href="{{route('EditNews.page' , ['id'=>$neww->id])}}" class="btn btn-warning">Edit</a>
             </td>
             <td>
-                 <a href="{{route('DeleteNews.post' , ['id'=>$neww->id])}}" class="btn btn-danger">Delete</a>
+                 <a href="{{route('DeleteNews.post' , ['id'=>$neww->id])}}"  onclick="return confirm('Malumot ochirilsinmi?')" class="btn btn-danger">Delete</a>
             </td>
         </tr>
         @endforeach
 
     </tbody>
 </table>
+
+<div class="d-flex justify-content-center">
+    {{ $news->links('pagination::bootstrap-4') }}
+</div>
 
 @endsection

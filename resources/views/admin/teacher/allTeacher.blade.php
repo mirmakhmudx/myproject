@@ -26,7 +26,7 @@
                 <a href="{{route('EditTeacher.page' , ['id'=>$teachers->id])}}" class="btn btn-warning">Edit</a>
            </td>
            <td>
-                            <a href="{{route('DeleteTeacher.post' , ['id'=>$teachers->id])}}" class="btn btn-danger">Delete</a>
+                            <a href="{{route('DeleteTeacher.post' , ['id'=>$teachers->id])}}" onclick="return confirm('Malumot ochirilsinmi?')"   class="btn btn-danger">Delete</a>
 
            </td>
         </tr>
@@ -34,6 +34,10 @@
 
     </tbody>
 </table>
+
+<div class="d-flex justify-content-center">
+    {{ $teacher->links('pagination::bootstrap-4') }}
+</div>
 
 @endsection
 

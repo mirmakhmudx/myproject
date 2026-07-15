@@ -9,7 +9,7 @@ class Course extends Model
 {
     use HasFactory;
 
-    protected $table = 'courses'; // 🔥 jadval nomi aniq bo‘lishi kerak
+    protected $table = 'courses';
 
     protected $fillable = [
         'title',

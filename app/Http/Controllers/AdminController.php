@@ -15,10 +15,9 @@ class AdminController extends Controller
     public function dashboard()
     {
     $coursesnew = course::all();
-    return view('admin.dashboard');
+    return view('admin.dashboard', compact('coursesnew'));
     }
-
-
+    
     public function loginPage()
     {
         return view('admin.login');
